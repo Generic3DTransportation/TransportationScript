@@ -10,7 +10,7 @@ https://plugins.jetbrains.com/plugin/8218?pr=pycharm
 
 **Verbindung zwischen Maya und PyCharm herstellen**
 --------
-Unter <Laufwerk>\Users\<user>\Documents\maya\2018\scripts ein Script namens userSetup.py reinhauen:
+Unter Laufwerk\Users\username\Documents\maya\2018\scripts ein Script namens userSetup.py reinhauen:
 ```
     import maya.cmds as cmds
     if not cmds.commandPort(':4434', q=True):
