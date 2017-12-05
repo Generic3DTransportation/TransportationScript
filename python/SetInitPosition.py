@@ -19,4 +19,4 @@ class SetInitPosition():
 
 
 cmds.select('pCube1')
-cmds.scale(2,4,1)
+cmds.scale(10,2,12)
