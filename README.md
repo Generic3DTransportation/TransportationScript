@@ -21,3 +21,9 @@ Unter Laufwerk\Users\username\Documents\maya\2018\scripts ein Script namens user
 --------
 Beim File das Script angeben und dann sollte das offene Maya File Änderungen des Scripts ändern.
 ![MayaCharm Debugger Panel](http://rightsomegoodgames.ca/assets/images/MayaCharm/MCDebuggerConfig.PNG)
+
+**Umsetzung**
+--------
+- Zuerst wird der Benutzer nach der Reihe(x) und der Spalte(y) an der das Paket im Regal plaziert werden soll. Dabei wird ebenfalls die Position der einselnen Motoren des Roboterarms angepasst.
+- Dannach wird der Roboterarm richtig plaziert und ein neues GUI-Fenster öffnet sich in dem alle Motoren angezeigt werden (mit den eingestellten Graden). Weiters wird darunter die Zeit zwischen diesen Animationspunkten(Keyframes) wählbar gemacht. Es wäre dabei auch noch ganz gut zu schnelle Aniamtionen (wenn man einen zu kurzen Abstand zwischen den Animationen setzt) ein Fehler beim setzen ausgegeben werden. GUI Bsp.:
+- Aus dieser Animation werden nun 4 Zeitpunkte heruasgenommen und nebeneinander zeitlich proportional dargestellt. Diese werden dann 3d gedruckt
