@@ -1,10 +1,14 @@
 """
+Created on 05.12.2017
+
+@author: Michael Ostrowski <mostrowski@student.tgm.ac.at>, Michael Frank <mfrank01@student.tgm.ac.at>
+@version: 20170512
+
+@description: Pythonscript von Maya
 
 """
 
 import maya.cmds as cmds
-if not cmds.commandPort(':4434', q=True):
-    cmds.commandPort(n=':4434')
 
 class SetInitPosition():
 
@@ -17,6 +21,6 @@ class SetInitPosition():
         posY = 0
         posZ = 0
 
-
-cmds.select('pCube1')
-cmds.scale(10,2,12)
+#tests
+cmds.select('achse01')
+cmds.rotate(0, '125deg', 0)
