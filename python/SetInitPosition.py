@@ -17,3 +17,6 @@ class SetInitPosition():
         posY = 0
         posZ = 0
 
+
+cmds.select('pCube1')
+cmds.scale(2,4,1)
