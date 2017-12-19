@@ -11,7 +11,9 @@ Created on 05.12.2017
 import maya.cmds as cmds
 
 class Robot():
-
+# Pos 1,1: 24.2208673777 , -41.0184917399 , 46.5470565213 , 99.6468447193 , 24.3908459759
+# Pos 1,2: 0.0 , -29.5138730516 , 29.8171860725 , 0.0 , 0.0
+# Pos 1,3:
     def __init__(self):
         self.a1 = 0
         self.a2 = 0
@@ -47,13 +49,18 @@ class Robot():
         cmds.rotate(0, 0, achse5)
 
     def createIniGUI(self):
-        cmds.window(title="Setup Starting Point")
-        cmds.columnLayout()
-        cmds.textField()
+        pass
 #tests
 
 r = Robot()
-r.a1=40
-r.a3=50
-r.updateAll()
-print(cmds.getAttr('achse1.rotateY'))
+#r.a1=24.2208673777
+#r.a2=-41.0184917399
+#r.a3=46.5470565213
+#r.a4=99.6468447193
+#r.a5=24.3908459759
+#r.updateAll()
+print("1: "+str(cmds.getAttr('achse1.rotateY')))
+print("2: "+str(cmds.getAttr('achse2.rotateZ')))
+print("3: "+str(cmds.getAttr('achse3.rotateZ')))
+print("4: "+str(cmds.getAttr('achse4.rotateX')))
+print("5: "+str(cmds.getAttr('achse5.rotateZ')))
