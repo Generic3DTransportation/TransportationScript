@@ -9,8 +9,68 @@ Created on 02.01.2017
 """
 
 import maya.cmds as cmds
+x_txt = cmds.intField
+y_txt = cmds.intField
+def InitUI():
+    winID = "InitPos"
+    if cmds.window(winID, exists=True):
+        cmds.deleteUI(winID)
 
-def UI():
+    # Create the window
+    cmds.window(winID)
+
+    # Master Layout
+    masterLayout = cmds.columnLayout()
+
+    # Platzhalter + Strich
+    cmds.separator(style='none', height=16)
+    cmds.separator(style='in', width=224)
+    cmds.separator(style='none', height=16)
+
+    # Laying out the rowColumnLayout is simple as this
+    table1 = cmds.rowColumnLayout(numberOfColumns=7,
+                                  columnWidth=[(1, 32), (2, 32), (3, 32), (4, 32), (5, 32), (6, 32), (7, 32)])
+
+    cmds.separator(style='none', width=32)
+
+    # Add first line of controls
+    cmds.text(label="Reihe")
+    x_txt = cmds.intField(minValue=1, maxValue=3)
+
+    cmds.separator(style='none', width=32)
+
+    # Adding more controls starts on the next row down.
+    cmds.text(label="Spalte")
+    y_txt = cmds.intField(minValue=1, maxValue=3)
+
+    cmds.separator(style='none', width=32)
+
+    # Wieder zurueck zum masterLayout
+    cmds.setParent('..')
+
+    cmds.separator(style='none', height=16)
+    cmds.separator(style='in', width=224)
+    cmds.separator(style='none', height=16)
+
+    # Zweites TableLayout
+    table2 = cmds.rowColumnLayout(numberOfColumns=5, columnWidth=[(1, 32), (2, 64), (3, 32), (4, 64), (5, 32)])
+
+    cmds.separator(style='none', width=32)
+    cmds.button(label='Preview',
+                command='r.setIniPos(cmds.intField(x_txt, query=True, value=True),cmds.intField(y_txt, query=True, value=True))')
+    cmds.separator(style='none', width=32)
+    cmds.button(label='Weiter')
+    cmds.separator(style='none', width=32)
+
+    # Wieder zurueck zum masterLayout
+    cmds.setParent('..')
+
+    cmds.separator(style='none', height=16)
+
+    # show window
+    cmds.showWindow(winID)
+
+def AnimationUI():
 
     # Loescht Fenster, wenn das Fenster davor schon offen war
     winID = "Animation"
@@ -87,7 +147,7 @@ def UI():
 
     cmds.setParent('..')
 
-    # Ein Layout für die Angabe der Sekunden zwischen den Keyframes
+    # Ein Layout fuer die Angabe der Sekunden zwischen den Keyframes
     table2 = cmds.rowColumnLayout( numberOfColumns=7, columnWidth=[ (1,25),(2,100),(3,10),(4,50),(5,10),(6,25),(7,180) ] )
 
     cmds.separator(style='none', width=50)
@@ -101,7 +161,7 @@ def UI():
 
     cmds.setParent('..')
 
-    # Layout für den Button
+    # Layout fuer den Button
     table3 = cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[ (1,100),(2,200),(3,100) ] )
 
     cmds.separator(style='none', width=100, height=25)
@@ -111,4 +171,4 @@ def UI():
     cmds.setParent('..')
 
     # Zeigt das Fentser an
-    cmds.showWindow(AnimationWindow)
+    cmds.showWindow(winID)
