@@ -34,6 +34,7 @@ class Robot():
         self.a3 = 0
         self.a4 = 0
         self.a5 = 0
+        self.totalpasttime = 0
 
     def updateAll(self):
         self.update1(self.a1)
@@ -70,6 +71,14 @@ class Robot():
         self.update4(w[3])
         self.update5(w[4])
 
+    def setKeyframe(self,nexttime):
+        time = self.totalpasttime + nexttime
+        self.totalpasttime += nexttime
+        cmds.setKeyframe('achse1', at='rotateY', t=str(time) + 'sec')
+        cmds.setKeyframe('achse2', at='rotateZ', t=str(time) + 'sec')
+        cmds.setKeyframe('achse3', at='rotateZ', t=str(time) + 'sec')
+        cmds.setKeyframe('achse4', at='rotateX', t=str(time) + 'sec')
+        cmds.setKeyframe('achse5', at='rotateZ', t=str(time) + 'sec')
 #UIs
 
 def InitUI():
@@ -126,6 +135,7 @@ def InitUI():
 
     def weiter(*_):
         setPos(*_)
+        r.setKeyframe(0)
         AnimationUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         cmds.deleteUI(winID)
 
@@ -161,12 +171,11 @@ def AnimationUI(x,y):
     cmds.text(label="Motor 1")
     cmds.separator(style = 'none', width = 10)
     def m1(*_):
-        print("m1 "+str(cmds.intField(motor1, query=True, value=True)))
         r.update1(cmds.intField(motor1, query=True, value=True))
-    motor1 = cmds.intField(cc=m1, value=int(init_pos[x - 1][y - 1][0]))
+    motor1 = cmds.intField(minValue=-180, maxValue=180, cc=m1, value=int(init_pos[x - 1][y - 1][0]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.separator(style='none')
+    cmds.text(label="(-180 - 180 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -175,10 +184,12 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=50)
     cmds.text(label="Motor 2")
     cmds.separator(style='none', width=10)
-    motor2 = cmds.intField(minValue=0, maxValue=180)
+    def m2(*_):
+        r.update2(cmds.intField(motor2, query=True, value=True))
+    motor2 = cmds.intField(minValue=-180, maxValue=180, cc=m2, value=int(init_pos[x - 1][y - 1][1]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(0 - 180 Grad)")
+    cmds.text(label="(-180 - 180 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -187,10 +198,12 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=50)
     cmds.text(label="Motor 3")
     cmds.separator(style='none', width=10)
-    motor3 = cmds.intField(minValue=0, maxValue=180)
+    def m3(*_):
+        r.update3(cmds.intField(motor3, query=True, value=True))
+    motor3 = cmds.intField(minValue=-180, maxValue=180, cc=m3, value=int(init_pos[x - 1][y - 1][2]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(0 - 180 Grad)")
+    cmds.text(label="(-180 - 180 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -199,10 +212,12 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=50)
     cmds.text(label="Motor 4")
     cmds.separator(style='none', width=10)
-    motor4 = cmds.intField(minValue=0, maxValue=180)
+    def m4(*_):
+        r.update4(cmds.intField(motor4, query=True, value=True))
+    motor4 = cmds.intField(minValue=-180, maxValue=180, cc=m4, value=int(init_pos[x - 1][y - 1][3]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(0 - 180 Grad)")
+    cmds.text(label="(-180 - 180 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -211,10 +226,12 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=50)
     cmds.text(label="Motor 5")
     cmds.separator(style='none', width=10)
-    motor5 = cmds.intField(minValue=0, maxValue=180)
+    def m5(*_):
+        r.update5(cmds.intField(motor5, query=True, value=True))
+    motor5 = cmds.intField(minValue=-180, maxValue=180, cc=m5, value=int(init_pos[x - 1][y - 1][4]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(0 - 180 Grad)")
+    cmds.text(label="(-180 - 180 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -226,7 +243,7 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=50)
     cmds.text(label="Animationsabstand")
     cmds.separator(style='none', width=10)
-    motor1 = cmds.intField(minValue=0, maxValue=25)
+    timedistance = cmds.intField(minValue=0, maxValue=25)
     cmds.separator(style='none', width=10)
     cmds.text(label="sec")
     cmds.text(label="(0 - 25 Sekunden)")
@@ -238,7 +255,9 @@ def AnimationUI(x,y):
     table3 = cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[ (1,100),(2,200),(3,100), ] )
 
     cmds.separator(style='none', width=100, height=25)
-    cmds.button(label='Animationspunkt setzen', command='')
+    def setKey(*_):
+        r.setKeyframe(cmds.intField(timedistance, query=True, value=True))
+    cmds.button(label='Animationspunkt setzen', command=setKey)
     cmds.separator(style='none', width=100)
 
     cmds.setParent('..')
