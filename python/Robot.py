@@ -8,6 +8,12 @@ Created on 05.12.2017
 
 """
 
+# Geschwindigkeit der Achsen (in Grad pro Sekunde)
+# M1: 105
+# M2: 107
+# M3: 114
+# M4: 179
+# M5: 172
 import maya.cmds as cmds
 
 init_pos = [
@@ -70,6 +76,9 @@ class Robot():
         self.update3(w[2])
         self.update4(w[3])
         self.update5(w[4])
+
+    def attachPackage(self,x,y):
+        cmds.parent('p'+str(x)+str(y), 'achse5')
 
     def setKeyframe(self,nexttime):
         time = self.totalpasttime + nexttime
@@ -135,6 +144,7 @@ def InitUI():
 
     def weiter(*_):
         setPos(*_)
+        r.attachPackage(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         r.setKeyframe(0)
         AnimationUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         cmds.deleteUI(winID)
@@ -172,10 +182,10 @@ def AnimationUI(x,y):
     cmds.separator(style = 'none', width = 10)
     def m1(*_):
         r.update1(cmds.intField(motor1, query=True, value=True))
-    motor1 = cmds.intField(minValue=-180, maxValue=180, cc=m1, value=int(init_pos[x - 1][y - 1][0]))
+    motor1 = cmds.intField(cc=m1, value=int(init_pos[x - 1][y - 1][0]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(-180 - 180 Grad)")
+    cmds.separator(style='none')
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -186,10 +196,10 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=10)
     def m2(*_):
         r.update2(cmds.intField(motor2, query=True, value=True))
-    motor2 = cmds.intField(minValue=-180, maxValue=180, cc=m2, value=int(init_pos[x - 1][y - 1][1]))
+    motor2 = cmds.intField(minValue=-85, maxValue=50, cc=m2, value=int(init_pos[x - 1][y - 1][1]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(-180 - 180 Grad)")
+    cmds.text(label="(-85 - 50 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -200,10 +210,10 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=10)
     def m3(*_):
         r.update3(cmds.intField(motor3, query=True, value=True))
-    motor3 = cmds.intField(minValue=-180, maxValue=180, cc=m3, value=int(init_pos[x - 1][y - 1][2]))
+    motor3 = cmds.intField(minValue=-65, maxValue=210, cc=m3, value=int(init_pos[x - 1][y - 1][2]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(-180 - 180 Grad)")
+    cmds.text(label="(-65 - 210 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -214,10 +224,10 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=10)
     def m4(*_):
         r.update4(cmds.intField(motor4, query=True, value=True))
-    motor4 = cmds.intField(minValue=-180, maxValue=180, cc=m4, value=int(init_pos[x - 1][y - 1][3]))
+    motor4 = cmds.intField(cc=m4, value=int(init_pos[x - 1][y - 1][3]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(-180 - 180 Grad)")
+    cmds.separator(style='none')
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -228,10 +238,10 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=10)
     def m5(*_):
         r.update5(cmds.intField(motor5, query=True, value=True))
-    motor5 = cmds.intField(minValue=-180, maxValue=180, cc=m5, value=int(init_pos[x - 1][y - 1][4]))
+    motor5 = cmds.intField(minValue=-120, maxValue=120, cc=m5, value=int(init_pos[x - 1][y - 1][4]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
-    cmds.text(label="(-180 - 180 Grad)")
+    cmds.text(label="(-120 - 120 Grad)")
     cmds.separator(style='none', height=25)
     cmds.setParent('..')
 
@@ -245,7 +255,7 @@ def AnimationUI(x,y):
     cmds.separator(style='none', width=10)
     timedistance = cmds.intField(minValue=0, maxValue=25)
     cmds.separator(style='none', width=10)
-    cmds.text(label="sec")
+    cmds.text(label="sek")
     cmds.text(label="(0 - 25 Sekunden)")
     cmds.separator(style='none', height=25)
 
@@ -271,14 +281,15 @@ def AnimationUI(x,y):
 r = Robot()
 # w = init_pos[0][2]
 # r.a1=w[0]
-# r.a2=w[1]
-# r.a3=w[2]
+# r.a2=-85
+# r.a3=-65
 # r.a4=w[3]
-# r.a5=w[4]
+# r.a5=-120
 # r.updateAll()
 # print("1: "+str(cmds.getAttr('achse1.rotateY')))
 # print("2: "+str(cmds.getAttr('achse2.rotateZ')))
 # print("3: "+str(cmds.getAttr('achse3.rotateZ')))
 # print("4: "+str(cmds.getAttr('achse4.rotateX')))
 # print("5: "+str(cmds.getAttr('achse5.rotateZ')))
-InitUI()
+#InitUI()
+print(cmds.listConnections("achse1.rotateY", t="animCurve"))
