@@ -31,6 +31,7 @@ init_pos = [
         (-24.2227667207 , -72.227931493  , 29.0615864173 , -33.0532596406, 48.5914699938)  #3,3
     ]
 ]
+max_speed = (105, 107, 114, 179, 172)
 
 class Robot():
 
@@ -77,8 +78,22 @@ class Robot():
         self.update4(w[3])
         self.update5(w[4])
 
+    def getMotorRotation(self,time):
+        cmds.currentTime(str(time) + 'sec', edit=True)
+        RotationList = []
+        RotationList.append(cmds.getAttr('achse1.rotateY'))
+        RotationList.append(cmds.getAttr('achse2.rotateZ'))
+        RotationList.append(cmds.getAttr('achse3.rotateZ'))
+        RotationList.append(cmds.getAttr('achse4.rotateX'))
+        RotationList.append(cmds.getAttr('achse5.rotateZ'))
+        return RotationList
+
     def attachPackage(self,x,y):
         cmds.parent('p'+str(x)+str(y), 'achse5')
+
+    def deleteKeyframe(self, time):
+        selectAll = cmds.ls()
+        cmds.cutKey(selectAll, t=(str(time)+'sec',str(time)+'sec'))
 
     def setKeyframe(self,nexttime):
         time = self.totalpasttime + nexttime
@@ -88,7 +103,24 @@ class Robot():
         cmds.setKeyframe('achse3', at='rotateZ', t=str(time) + 'sec')
         cmds.setKeyframe('achse4', at='rotateX', t=str(time) + 'sec')
         cmds.setKeyframe('achse5', at='rotateZ', t=str(time) + 'sec')
-#UIs
+        try:
+            self.checkKeyframe(self.totalpasttime-nexttime, self.totalpasttime)
+        except ValueError as err:
+            SpeedUI(err.args[0])
+            self.deleteKeyframe(self.totalpasttime)
+            self.totalpasttime -= nexttime
+            cmds.currentTime(str(self.totalpasttime) + 'sec', edit=True)
+
+    def checkKeyframe(self, lastTime, nextTime):
+        if nextTime - lastTime > 0:
+            lastRotation = self.getMotorRotation(lastTime)
+            nextRotation = self.getMotorRotation(nextTime)
+            for i in range(5):
+                print(str(abs(nextRotation[i]-lastRotation[i]))+" durch "+str(nextTime-lastTime)+" ist "+str(max_speed[i]))
+                if abs(nextRotation[i]-lastRotation[i]) != 0 and (abs(nextRotation[i]-lastRotation[i])/(nextTime-lastTime)) > max_speed[i]:
+                    raise ValueError("Rotation bei Motor "+str(i+1)+ " ist zu schnell!")
+
+# UIs
 
 def InitUI():
     winID = "InitPos"
@@ -276,6 +308,39 @@ def AnimationUI(x,y):
     # Zeigt das Fentser an
     cmds.showWindow(winID)
 
+def SpeedUI(text):
+    winID = "Speed"
+    if cmds.window(winID, exists=True):
+        cmds.deleteUI(winID)
+    cmds.window(winID)
+
+    masterLayout = cmds.columnLayout()
+
+    cmds.separator(style='none', height=16)
+    cmds.separator(style='in', width=300)
+    cmds.separator(style='none', height=16)
+
+    cmds.text(label=str(text), width=300)
+
+    cmds.separator(style='none', height=16)
+    cmds.separator(style='in', width=300)
+    cmds.separator(style='none', height=16)
+
+    cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 100), (2, 100), (3, 100), ])
+    cmds.separator(style='none', width=100, height=25)
+
+    def ok(*_):
+        cmds.deleteUI(winID)
+
+    cmds.button(label="OK", command=ok)
+    cmds.separator(style='none', width=100, height=25)
+    cmds.setParent('..')
+
+    cmds.separator(style='none', height=25)
+
+    cmds.showWindow(winID)
+
+
 #tests
 
 r = Robot()
@@ -291,5 +356,5 @@ r = Robot()
 # print("3: "+str(cmds.getAttr('achse3.rotateZ')))
 # print("4: "+str(cmds.getAttr('achse4.rotateX')))
 # print("5: "+str(cmds.getAttr('achse5.rotateZ')))
-#InitUI()
-print(cmds.listConnections("achse1.rotateY", t="animCurve"))
+InitUI()
+# print(cmds.listConnections("achse1.rotateY", t="animCurve"))
