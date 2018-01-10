@@ -15,6 +15,7 @@ Created on 05.12.2017
 # M4: 179
 # M5: 172
 import maya.cmds as cmds
+import os
 
 init_pos = [
     [
@@ -35,7 +36,12 @@ max_speed = (105, 107, 114, 179, 172)
 
 class Robot():
 
-    def __init__(self):
+    def __init__(self, name):
+        self.achsname1 = name + "|achse1"
+        self.achsname2 = name + "|achse1|achse2"
+        self.achsname3 = name + "|achse1|achse2|achse3"
+        self.achsname4 = name + "|achse1|achse2|achse3|achse4"
+        self.achsname5 = name + "|achse1|achse2|achse3|achse4|achse5"
         self.a1 = 0
         self.a2 = 0
         self.a3 = 0
@@ -51,23 +57,23 @@ class Robot():
         self.update5(self.a5)
 
     def update1(self, achse1):
-        cmds.select('achse1')
+        cmds.select(self.achsname1)
         cmds.rotate(0, achse1, 0)
 
     def update2(self, achse2):
-        cmds.select('achse2')
+        cmds.select(self.achsname2)
         cmds.rotate(0, 0, achse2)
 
     def update3(self, achse3):
-        cmds.select('achse3')
+        cmds.select(self.achsname3)
         cmds.rotate(0, 0, achse3)
 
     def update4(self, achse4):
-        cmds.select('achse4')
+        cmds.select(self.achsname4)
         cmds.rotate(achse4, 0, 0)
 
     def update5(self, achse5):
-        cmds.select('achse5')
+        cmds.select(self.achsname5)
         cmds.rotate(0, 0, achse5)
 
     def setIniPos(self,x,y):
@@ -81,15 +87,15 @@ class Robot():
     def getMotorRotation(self,time):
         cmds.currentTime(str(time) + 'sec', edit=True)
         RotationList = []
-        RotationList.append(cmds.getAttr('achse1.rotateY'))
-        RotationList.append(cmds.getAttr('achse2.rotateZ'))
-        RotationList.append(cmds.getAttr('achse3.rotateZ'))
-        RotationList.append(cmds.getAttr('achse4.rotateX'))
-        RotationList.append(cmds.getAttr('achse5.rotateZ'))
+        RotationList.append(cmds.getAttr(self.achsname1+'.rotateY'))
+        RotationList.append(cmds.getAttr(self.achsname2+'.rotateZ'))
+        RotationList.append(cmds.getAttr(self.achsname3+'.rotateZ'))
+        RotationList.append(cmds.getAttr(self.achsname4+'.rotateX'))
+        RotationList.append(cmds.getAttr(self.achsname5+'.rotateZ'))
         return RotationList
 
     def attachPackage(self,x,y):
-        cmds.parent('p'+str(x)+str(y), 'achse5')
+        cmds.parent('p'+str(x)+str(y), self.achsname5)
 
     def deleteKeyframe(self, time):
         selectAll = cmds.ls()
@@ -98,11 +104,11 @@ class Robot():
     def setKeyframe(self,nexttime):
         time = self.totalpasttime + nexttime
         self.totalpasttime += nexttime
-        cmds.setKeyframe('achse1', at='rotateY', t=str(time) + 'sec')
-        cmds.setKeyframe('achse2', at='rotateZ', t=str(time) + 'sec')
-        cmds.setKeyframe('achse3', at='rotateZ', t=str(time) + 'sec')
-        cmds.setKeyframe('achse4', at='rotateX', t=str(time) + 'sec')
-        cmds.setKeyframe('achse5', at='rotateZ', t=str(time) + 'sec')
+        cmds.setKeyframe(self.achsname1, at='rotateY', t=str(time) + 'sec')
+        cmds.setKeyframe(self.achsname2, at='rotateZ', t=str(time) + 'sec')
+        cmds.setKeyframe(self.achsname3, at='rotateZ', t=str(time) + 'sec')
+        cmds.setKeyframe(self.achsname4, at='rotateX', t=str(time) + 'sec')
+        cmds.setKeyframe(self.achsname5, at='rotateZ', t=str(time) + 'sec')
         try:
             self.checkKeyframe(self.totalpasttime-nexttime, self.totalpasttime)
         except ValueError as err:
@@ -119,6 +125,17 @@ class Robot():
                 print(str(abs(nextRotation[i]-lastRotation[i]))+" durch "+str(nextTime-lastTime)+" ist "+str(max_speed[i]))
                 if abs(nextRotation[i]-lastRotation[i]) != 0 and (abs(nextRotation[i]-lastRotation[i])/(nextTime-lastTime)) > max_speed[i]:
                     raise ValueError("Rotation bei Motor "+str(i+1)+ " ist zu schnell!")
+
+def newRobot(name):
+    cmds.duplicate('Robot', n=name)
+    return Robot(name)
+
+def printAnimation():
+    # Create File
+    # cmds.file(f=True, new=True)
+    cmds.select('Tisch')
+    cmds.file(os.getcwd()+'/PrintRobot.mb', type='mayaBinary', exportSelected=True)
+    cmds.file(f=True, type='mayaBinary', save=True)
 
 # UIs
 
@@ -343,7 +360,7 @@ def SpeedUI(text):
 
 #tests
 
-r = Robot()
+r = Robot("Robot")
 # w = init_pos[0][2]
 # r.a1=w[0]
 # r.a2=-85
@@ -356,5 +373,6 @@ r = Robot()
 # print("3: "+str(cmds.getAttr('achse3.rotateZ')))
 # print("4: "+str(cmds.getAttr('achse4.rotateX')))
 # print("5: "+str(cmds.getAttr('achse5.rotateZ')))
-InitUI()
+# InitUI()
 # print(cmds.listConnections("achse1.rotateY", t="animCurve"))
+printAnimation()
