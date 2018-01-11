@@ -133,9 +133,37 @@ def newRobot(name):
 def printAnimation():
     # Create File
     # cmds.file(f=True, new=True)
-    cmds.select('Tisch')
+    timeseg = r.totalpasttime/3
+    cmds.currentTime('0sec', edit=True)
+    r1 = newRobot("r1")
+    cmds.currentTime(str(timeseg) + 'sec', edit=True)
+    r2 = newRobot("r2")
+    cmds.currentTime(str(timeseg * 2) + 'sec', edit=True)
+    r3 = newRobot("r3")
+    cmds.currentTime(str(r.totalpasttime) + 'sec', edit=True)
+    r4 = newRobot("r4")
+    cmds.duplicate('Regal', n='Regal_Frame')
+    cmds.duplicate('Tisch', n='Tisch_Frame')
+    cmds.duplicate('Platte', n='Platte_Frame')
+    cmds.select('Regal_Frame', r=True)
+    cmds.select('r1', add=True)
+    cmds.move(25, moveX=True, relative=True)
+    cmds.select('Tisch_Frame', r=True)
+    cmds.select('r4', add=True)
+    cmds.move(-25, moveX=True, relative=True)
+    cmds.select('r2', r=True)
+    cmds.move(50 / 3 / 2, moveX=True, relative=True)
+    cmds.select('r3', r=True)
+    cmds.move(-50 / 3 / 2, moveX=True, relative=True)
+    cmds.select('Platte_Frame', r=True)
+    cmds.select('Tisch_Frame', add=True)
+    cmds.select('Regal_Frame', add=True)
+    cmds.select('r1', add=True)
+    cmds.select('r2', add=True)
+    cmds.select('r3', add=True)
+    cmds.select('r4', add=True)
     cmds.file(os.getcwd()+'/PrintRobot.mb', type='mayaBinary', exportSelected=True)
-    cmds.file(f=True, type='mayaBinary', save=True)
+    cmds.delete()
 
 # UIs
 
@@ -311,13 +339,17 @@ def AnimationUI(x,y):
     cmds.setParent('..')
 
     # Layout fuer den Button
-    table3 = cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[ (1,100),(2,200),(3,100), ] )
+    table3 = cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[ (1,50),(2,150),(3,50),(4,100),(5,50) ] )
 
-    cmds.separator(style='none', width=100, height=25)
+    cmds.separator(style='none', width=50, height=25)
     def setKey(*_):
         r.setKeyframe(cmds.intField(timedistance, query=True, value=True))
     cmds.button(label='Animationspunkt setzen', command=setKey)
-    cmds.separator(style='none', width=100)
+    cmds.separator(style='none', width=50)
+    def export(*_):
+        printAnimation()
+    cmds.button(label='Drucken', command=export)
+    cmds.separator(style='none', width=50)
 
     cmds.setParent('..')
 
@@ -343,7 +375,7 @@ def SpeedUI(text):
     cmds.separator(style='in', width=300)
     cmds.separator(style='none', height=16)
 
-    cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 100), (2, 100), (3, 100), ])
+    cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 100), (2, 100), (3, 100)])
     cmds.separator(style='none', width=100, height=25)
 
     def ok(*_):
@@ -357,10 +389,10 @@ def SpeedUI(text):
 
     cmds.showWindow(winID)
 
+r = Robot("Robot")
+InitUI()
 
 #tests
-
-r = Robot("Robot")
 # w = init_pos[0][2]
 # r.a1=w[0]
 # r.a2=-85
@@ -373,6 +405,3 @@ r = Robot("Robot")
 # print("3: "+str(cmds.getAttr('achse3.rotateZ')))
 # print("4: "+str(cmds.getAttr('achse4.rotateX')))
 # print("5: "+str(cmds.getAttr('achse5.rotateZ')))
-# InitUI()
-# print(cmds.listConnections("achse1.rotateY", t="animCurve"))
-printAnimation()
