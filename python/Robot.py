@@ -4,19 +4,13 @@ Created on 05.12.2017
 @author: Michael Ostrowski <mostrowski@student.tgm.ac.at>, Michael Frank <mfrank01@student.tgm.ac.at>
 @version: 20170512
 
-@description: Pythonscript von Maya
+@description: Pythonscript für Roboteransteuerung
 
 """
-
-# Geschwindigkeit der Achsen (in Grad pro Sekunde)
-# M1: 105
-# M2: 107
-# M3: 114
-# M4: 179
-# M5: 172
 import maya.cmds as cmds
 import os
 
+# Die Winkelpositionen des Roboters für die Anfangsposition, um das Paket zu nehmen
 init_pos = [
     [
         ( 24.2208673777 , -41.0184917399 , 46.5470565213 , 99.6468447193 , 24.3908459759), #1,1
@@ -32,59 +26,88 @@ init_pos = [
         (-24.2227667207 , -72.227931493  , 29.0615864173 , -33.0532596406, 48.5914699938)  #3,3
     ]
 ]
+# Maximale Geschwindigkeit der Achsen (in Grad pro Sekunde)
 max_speed = (105, 107, 114, 179, 172)
 
 class Robot():
+    """
+    Das Roboterobjekt, welches für die direkte Ansteuerung
+    des einzelen Roboterarms zuständig ist.
+    """
 
     def __init__(self, name):
+        """
+        Die Initialisierung des Roboterobjekts.
+        :param name: Der vergebene Name des Roboterarms in Maya, um diesen anzusteuern.
+        """
+        # Achsenname ist der eindeutige Name, mit dem jede Achse jedes Roboterarms angesteuert wird.
         self.achsname1 = name + "|achse1"
         self.achsname2 = name + "|achse1|achse2"
         self.achsname3 = name + "|achse1|achse2|achse3"
         self.achsname4 = name + "|achse1|achse2|achse3|achse4"
         self.achsname5 = name + "|achse1|achse2|achse3|achse4|achse5"
+
+        # Der Winkel jeder Achse
         self.a1 = 0
         self.a2 = 0
         self.a3 = 0
         self.a4 = 0
         self.a5 = 0
+
+        # Die Länge der Animation
         self.totalpasttime = 0
 
     def updateAll(self):
-        self.update1(self.a1)
-        self.update2(self.a2)
-        self.update3(self.a3)
-        self.update4(self.a4)
-        self.update5(self.a5)
+        """
+        Aktualisiert alle Winkel des Roboterarms nach den gesetzten Winkel des Roboterobjekts
+        """
+        self.setAchse1(self.a1)
+        self.setAchse2(self.a2)
+        self.setAchse3(self.a3)
+        self.setAchse4(self.a4)
+        self.setAchse5(self.a5)
 
-    def update1(self, achse1):
+    # Methoden zu setzen der einzelnen Achsen des Roboterarms
+    def setAchse1(self, achse1):
         cmds.select(self.achsname1)
         cmds.rotate(0, achse1, 0)
 
-    def update2(self, achse2):
+    def setAchse2(self, achse2):
         cmds.select(self.achsname2)
         cmds.rotate(0, 0, achse2)
 
-    def update3(self, achse3):
+    def setAchse3(self, achse3):
         cmds.select(self.achsname3)
         cmds.rotate(0, 0, achse3)
 
-    def update4(self, achse4):
+    def setAchse4(self, achse4):
         cmds.select(self.achsname4)
         cmds.rotate(achse4, 0, 0)
 
-    def update5(self, achse5):
+    def setAchse5(self, achse5):
         cmds.select(self.achsname5)
         cmds.rotate(0, 0, achse5)
 
     def setIniPos(self,x,y):
+        """
+        Setzt die Position des Roboterarms neben dem gewählten Paket im Regal.
+        :param x: Die Reihe im Regal
+        :param y: Die Spalte im Regal
+        """
         w = init_pos[x-1][y-1]
-        self.update1(w[0])
-        self.update2(w[1])
-        self.update3(w[2])
-        self.update4(w[3])
-        self.update5(w[4])
+        self.setAchse1(w[0])
+        self.setAchse2(w[1])
+        self.setAchse3(w[2])
+        self.setAchse4(w[3])
+        self.setAchse5(w[4])
 
     def getMotorRotation(self,time):
+        """
+        Gibt eine Liste an Winkeln der jeweiligen Motoren auf Sekunde 'time' zurück.
+        :param time: Die Sekunde in der Animation
+        :return: Eine Liste an Winkeln der einzelnen Motoren
+        """
+        # Setzt die Zeit in der Animation
         cmds.currentTime(str(time) + 'sec', edit=True)
         RotationList = []
         RotationList.append(cmds.getAttr(self.achsname1+'.rotateY'))
@@ -95,20 +118,28 @@ class Robot():
         return RotationList
 
     def attachPackage(self,x,y):
+        """
+        'Heftet' das Paket an den Roboterarm an, um es mit dem Roboterarm zu bewegen.
+        :param x: Die Reihe im Regal
+        :param y: Die Spalte im Regal
+        """
+        # parent verschiebt ein Objekt in eine Gruppe.
         cmds.parent('p'+str(x)+str(y), self.achsname5)
 
-    def deleteKeyframe(self, time):
-        selectAll = cmds.ls()
-        cmds.cutKey(selectAll, t=(str(time)+'sec',str(time)+'sec'))
-
     def setKeyframe(self,nexttime):
+        """
+        Setzt einen Keyframe in der Animation
+        :param nexttime: Die Zeit zwischen letzten Keyframe und dem zu setzendem Keyframe
+        """
         time = self.totalpasttime + nexttime
         self.totalpasttime += nexttime
+        # Setzt Keyframe an allen Achsen
         cmds.setKeyframe(self.achsname1, at='rotateY', t=str(time) + 'sec')
         cmds.setKeyframe(self.achsname2, at='rotateZ', t=str(time) + 'sec')
         cmds.setKeyframe(self.achsname3, at='rotateZ', t=str(time) + 'sec')
         cmds.setKeyframe(self.achsname4, at='rotateX', t=str(time) + 'sec')
         cmds.setKeyframe(self.achsname5, at='rotateZ', t=str(time) + 'sec')
+        # Validierung des Keyframes, ob ein Motor sich nicht zu schnell dreht.
         try:
             self.checkKeyframe(self.totalpasttime-nexttime, self.totalpasttime)
         except ValueError as err:
@@ -118,22 +149,50 @@ class Robot():
             cmds.currentTime(str(self.totalpasttime) + 'sec', edit=True)
 
     def checkKeyframe(self, lastTime, nextTime):
+        """
+        # Validierung des Keyframes, ob ein Motor sich nicht zu schnell dreht.
+        :param lastTime: Der Zeitpunkt des letzten Keyframes
+        :param nextTime: Der Zeitpunkt des zu setzendem Keyframes
+        """
         if nextTime - lastTime > 0:
+            # Listen der Motorenwinkel zu den Zeitpunkten des Keyframes
             lastRotation = self.getMotorRotation(lastTime)
             nextRotation = self.getMotorRotation(nextTime)
             for i in range(5):
-                print(str(abs(nextRotation[i]-lastRotation[i]))+" durch "+str(nextTime-lastTime)+" ist "+str(max_speed[i]))
+                # print(str(abs(nextRotation[i]-lastRotation[i]))+" durch "+str(nextTime-lastTime)+" ist "+str(max_speed[i]))
+                # Lineare Berechnung der geschwindigkeit, obwohl logistische Animationskurve
+                # TODO: logistische Berechnung der Geschwindigkeit der Motoren
                 if abs(nextRotation[i]-lastRotation[i]) != 0 and (abs(nextRotation[i]-lastRotation[i])/(nextTime-lastTime)) > max_speed[i]:
                     raise ValueError("Rotation bei Motor "+str(i+1)+ " ist zu schnell!")
 
+    def deleteKeyframe(self, time):
+        """
+        Löscht einen Keyframe in der Animation
+        :param time: die Sekunde des Keyframes
+        """
+        # Eine Liste aller Objekte in Maya
+        selectAll = cmds.ls()
+        # Löschen des Keyframes
+        cmds.cutKey(selectAll, t=(str(time)+'sec',str(time)+'sec'))
+
 def newRobot(name):
+    """
+    Erstellt einen neuen Roboterarm
+    :param name: Bezeichnung des neuen Roboterarms
+    :return: Das Roboterobjekt
+    """
     cmds.duplicate('Robot', n=name)
     return Robot(name)
 
 def printAnimation():
+    """
+    Exportierung der Animierung in ein externes File mit 4 Zeitpunkten graphisch gargestellt.
+    """
     # Create File
     # cmds.file(f=True, new=True)
     timeseg = r.totalpasttime/3
+
+    # Erstellung von 4 Roboterarmen an den 4 Zeitpunkten der Animation
     cmds.currentTime('0sec', edit=True)
     r1 = newRobot("r1")
     cmds.currentTime(str(timeseg) + 'sec', edit=True)
@@ -142,9 +201,14 @@ def printAnimation():
     r3 = newRobot("r3")
     cmds.currentTime(str(r.totalpasttime) + 'sec', edit=True)
     r4 = newRobot("r4")
+
+    # Kopieren von Regal, Tisch und Platte zum Export in das File
     cmds.duplicate('Regal', n='Regal_Frame')
     cmds.duplicate('Tisch', n='Tisch_Frame')
     cmds.duplicate('Platte', n='Platte_Frame')
+
+    # Selektion aller Objekte welche exportiert werden sollen
+    # und Verschiebung der Roboterarme auf die zeitlich proportionalen Positionen
     cmds.select('Regal_Frame', r=True)
     cmds.select('r1', add=True)
     cmds.move(25, moveX=True, relative=True)
@@ -162,12 +226,19 @@ def printAnimation():
     cmds.select('r2', add=True)
     cmds.select('r3', add=True)
     cmds.select('r4', add=True)
+
+    # Export der Selektion in PrintRobot.mb
     cmds.file(os.getcwd()+'/PrintRobot.mb', type='mayaBinary', exportSelected=True)
+
+    # Selektion wird nach Export gelöscht
     cmds.delete()
 
-# UIs
+# GUIs
 
 def InitUI():
+    """
+    Erstellung der GUI für die Auswahl der Startposition des Roboterarms auf ein Paket im Regal
+    """
     winID = "InitPos"
     if cmds.window(winID, exists=True):
         cmds.deleteUI(winID)
@@ -214,16 +285,26 @@ def InitUI():
     cmds.separator(style='none', width=32)
 
     def setPos(*_):
+        """
+        Setzt die Anfangsposition des Roboterarms
+        :param _: metadata des button Commands
+        """
         r.setIniPos(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
 
     cmds.button(label='Preview',command=setPos)
     cmds.separator(style='none', width=32)
 
     def weiter(*_):
+        """
+        Hier wird man in die Animations GUI weitergeführt
+        :param _: metadata des button Commands
+        """
         setPos(*_)
         r.attachPackage(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
+        # Setz den ersten Keyframe
         r.setKeyframe(0)
         AnimationUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
+        # Schliesst die Init GUI
         cmds.deleteUI(winID)
 
     cmds.button(label='Weiter',command=weiter)
@@ -238,6 +319,11 @@ def InitUI():
     cmds.showWindow(winID)
 
 def AnimationUI(x,y):
+    """
+    Die GUI für die Animation des Roboterarms
+    :param x: Die Reihe im Regal
+    :param y: Die Spalte im Regal
+    """
 
     # Loescht Fenster, wenn das Fenster davor schon offen war
     winID = "Animation"
@@ -258,7 +344,7 @@ def AnimationUI(x,y):
     cmds.text(label="Motor 1")
     cmds.separator(style = 'none', width = 10)
     def m1(*_):
-        r.update1(cmds.intField(motor1, query=True, value=True))
+        r.setAchse1(cmds.intField(motor1, query=True, value=True))
     motor1 = cmds.intField(cc=m1, value=int(init_pos[x - 1][y - 1][0]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
@@ -272,7 +358,7 @@ def AnimationUI(x,y):
     cmds.text(label="Motor 2")
     cmds.separator(style='none', width=10)
     def m2(*_):
-        r.update2(cmds.intField(motor2, query=True, value=True))
+        r.setAchse2(cmds.intField(motor2, query=True, value=True))
     motor2 = cmds.intField(minValue=-85, maxValue=50, cc=m2, value=int(init_pos[x - 1][y - 1][1]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
@@ -286,7 +372,7 @@ def AnimationUI(x,y):
     cmds.text(label="Motor 3")
     cmds.separator(style='none', width=10)
     def m3(*_):
-        r.update3(cmds.intField(motor3, query=True, value=True))
+        r.setAchse3(cmds.intField(motor3, query=True, value=True))
     motor3 = cmds.intField(minValue=-65, maxValue=210, cc=m3, value=int(init_pos[x - 1][y - 1][2]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
@@ -300,7 +386,7 @@ def AnimationUI(x,y):
     cmds.text(label="Motor 4")
     cmds.separator(style='none', width=10)
     def m4(*_):
-        r.update4(cmds.intField(motor4, query=True, value=True))
+        r.setAchse4(cmds.intField(motor4, query=True, value=True))
     motor4 = cmds.intField(cc=m4, value=int(init_pos[x - 1][y - 1][3]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
@@ -314,7 +400,7 @@ def AnimationUI(x,y):
     cmds.text(label="Motor 5")
     cmds.separator(style='none', width=10)
     def m5(*_):
-        r.update5(cmds.intField(motor5, query=True, value=True))
+        r.setAchse5(cmds.intField(motor5, query=True, value=True))
     motor5 = cmds.intField(minValue=-120, maxValue=120, cc=m5, value=int(init_pos[x - 1][y - 1][4]))
     cmds.separator(style='none', width=10)
     cmds.text(label="Grad")
@@ -343,10 +429,18 @@ def AnimationUI(x,y):
 
     cmds.separator(style='none', width=50, height=25)
     def setKey(*_):
+        """
+        Setzt den Keyframe
+        :param _: metadata des Button Commands
+        """
         r.setKeyframe(cmds.intField(timedistance, query=True, value=True))
     cmds.button(label='Animationspunkt setzen', command=setKey)
     cmds.separator(style='none', width=50)
     def export(*_):
+        """
+        Exportiert die Animation
+        :param _: metadata des Button Commands
+        """
         printAnimation()
     cmds.button(label='Drucken', command=export)
     cmds.separator(style='none', width=50)
@@ -358,6 +452,10 @@ def AnimationUI(x,y):
     cmds.showWindow(winID)
 
 def SpeedUI(text):
+    """
+    Diese GUI wird aufgerufen sobald sich ein Motor zu schnell dreht
+    :param text: der Fehlertext welcher ausgegeben wird
+    """
     winID = "Speed"
     if cmds.window(winID, exists=True):
         cmds.deleteUI(winID)
@@ -389,10 +487,13 @@ def SpeedUI(text):
 
     cmds.showWindow(winID)
 
+# Der Anfangs Roboterarm mitdem die parametrischen Daten erfasst werden
 r = Robot("Robot")
+# Öffnen der Startpositions GUI
 InitUI()
 
-#tests
+# Testing
+
 # w = init_pos[0][2]
 # r.a1=w[0]
 # r.a2=-85
