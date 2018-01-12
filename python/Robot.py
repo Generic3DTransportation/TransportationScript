@@ -4,13 +4,12 @@ Created on 05.12.2017
 @author: Michael Ostrowski <mostrowski@student.tgm.ac.at>, Michael Frank <mfrank01@student.tgm.ac.at>
 @version: 20170512
 
-@description: Pythonscript für Roboteransteuerung
-
+@description: Pythonscript fuer Roboteransteuerung
 """
 import maya.cmds as cmds
 import os
 
-# Die Winkelpositionen des Roboters für die Anfangsposition, um das Paket zu nehmen
+# Die Winkelpositionen des Roboters fuer die Anfangsposition, um das Paket zu nehmen
 init_pos = [
     [
         ( 24.2208673777 , -41.0184917399 , 46.5470565213 , 99.6468447193 , 24.3908459759), #1,1
@@ -31,8 +30,8 @@ max_speed = (105, 107, 114, 179, 172)
 
 class Robot():
     """
-    Das Roboterobjekt, welches für die direkte Ansteuerung
-    des einzelen Roboterarms zuständig ist.
+    Das Roboterobjekt, welches fuer die direkte Ansteuerung
+    des einzelen Roboterarms zustaendig ist.
     """
 
     def __init__(self, name):
@@ -54,7 +53,7 @@ class Robot():
         self.a4 = 0
         self.a5 = 0
 
-        # Die Länge der Animation
+        # Die Laenge der Animation
         self.totalpasttime = 0
 
     def updateAll(self):
@@ -90,7 +89,7 @@ class Robot():
 
     def setIniPos(self,x,y):
         """
-        Setzt die Position des Roboterarms neben dem gewählten Paket im Regal.
+        Setzt die Position des Roboterarms neben dem gewaehlten Paket im Regal.
         :param x: Die Reihe im Regal
         :param y: Die Spalte im Regal
         """
@@ -103,7 +102,7 @@ class Robot():
 
     def getMotorRotation(self,time):
         """
-        Gibt eine Liste an Winkeln der jeweiligen Motoren auf Sekunde 'time' zurück.
+        Gibt eine Liste an Winkeln der jeweiligen Motoren auf Sekunde 'time' zurueck.
         :param time: Die Sekunde in der Animation
         :return: Eine Liste an Winkeln der einzelnen Motoren
         """
@@ -167,12 +166,12 @@ class Robot():
 
     def deleteKeyframe(self, time):
         """
-        Löscht einen Keyframe in der Animation
+        Loescht einen Keyframe in der Animation
         :param time: die Sekunde des Keyframes
         """
         # Eine Liste aller Objekte in Maya
         selectAll = cmds.ls()
-        # Löschen des Keyframes
+        # Loeschen des Keyframes
         cmds.cutKey(selectAll, t=(str(time)+'sec',str(time)+'sec'))
 
 def newRobot(name):
@@ -190,7 +189,9 @@ def printAnimation():
     """
     # Create File
     # cmds.file(f=True, new=True)
-    timeseg = r.totalpasttime/3
+    timeseg = float(r.totalpasttime)/3
+    print(r.totalpasttime)
+    print(timeseg)
 
     # Erstellung von 4 Roboterarmen an den 4 Zeitpunkten der Animation
     cmds.currentTime('0sec', edit=True)
@@ -230,14 +231,14 @@ def printAnimation():
     # Export der Selektion in PrintRobot.mb
     cmds.file(os.getcwd()+'/PrintRobot.mb', type='mayaBinary', exportSelected=True)
 
-    # Selektion wird nach Export gelöscht
+    # Selektion wird nach Export geloescht
     cmds.delete()
 
 # GUIs
 
 def InitUI():
     """
-    Erstellung der GUI für die Auswahl der Startposition des Roboterarms auf ein Paket im Regal
+    Erstellung der GUI fuer die Auswahl der Startposition des Roboterarms auf ein Paket im Regal
     """
     winID = "InitPos"
     if cmds.window(winID, exists=True):
@@ -296,7 +297,7 @@ def InitUI():
 
     def weiter(*_):
         """
-        Hier wird man in die Animations GUI weitergeführt
+        Hier wird man in die Animations GUI weitergefuehrt
         :param _: metadata des button Commands
         """
         setPos(*_)
@@ -320,7 +321,7 @@ def InitUI():
 
 def AnimationUI(x,y):
     """
-    Die GUI für die Animation des Roboterarms
+    Die GUI fuer die Animation des Roboterarms
     :param x: Die Reihe im Regal
     :param y: Die Spalte im Regal
     """
@@ -489,7 +490,7 @@ def SpeedUI(text):
 
 # Der Anfangs Roboterarm mitdem die parametrischen Daten erfasst werden
 r = Robot("Robot")
-# Öffnen der Startpositions GUI
+# Oeffnen der Startpositions GUI
 InitUI()
 
 # Testing
