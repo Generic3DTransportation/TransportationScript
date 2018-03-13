@@ -304,7 +304,7 @@ def InitUI():
         r.attachPackage(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         # Setz den ersten Keyframe
         r.setKeyframe(0)
-        AnimationUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
+        AnimationmodelUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         # Schliesst die Init GUI
         cmds.deleteUI(winID)
 
@@ -319,6 +319,100 @@ def InitUI():
     # show window
     cmds.showWindow(winID)
 
+
+def AnimationmodelUI(x,y):
+    """
+    Fenster dass zwischen Haendischer oder durch einen Algorightmus die Animation erstellt werden soll
+    :param x: Die Reihe im Regal
+    :param y: Die Spalte im Regal
+    """
+    winID = "Animationsmodel"
+    if cmds.window(winID, exists=True):
+        cmds.deleteUI(winID)
+
+    # Fenster erstellen
+    animationmodelWindow = cmds.window("Animationsmodel", title = "Auswahl des Animationmodels", h = 150, w = 400, sizeable = False)
+
+    # Layout erstellen
+    mainLayout = cmds.columnLayout(w=400, h=150)
+
+    # # Platzhalter + Strich
+    cmds.separator(style='none', width=50, height=15)
+
+    # Laying out the rowColumnLayout
+    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
+
+    cmds.separator(style='none', width=50)
+    cmds.text("Waehlen sie die Methode aus welcher die Animation herzustellen ist")
+    cmds.separator(style='none', width=50)
+    #Zurueck zum Hauptlayout
+    cmds.setParent('..')
+
+    cmds.separator(style='none', width=50, height=15)
+
+    # Laying out secound rowColumnLayout
+    table2 = cmds.rowColumnLayout(numberOfColumns=5, columnWidth=[(1,80),(2,100),(3,40),(4,100),(5,80)])
+
+    cmds.separator(style='none', width=80)
+    DirectionControl = cmds.radioCollection()
+    Direction0 = cmds.radioButton(label='Manuell')
+    cmds.separator(style='none', width=40)
+    Direction1 = cmds.radioButton(label='Algorithmisch')
+    cmds.separator(style='none', width=80)
+    # Zurueck zum Hauptlayout
+    cmds.setParent('..')
+
+    cmds.separator(style='none', width=50, height=20)
+    DirectionControl = cmds.radioCollection(DirectionControl, edit=True, select=Direction1)
+
+    # Laying out the rowColumnLayout
+    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
+
+    def weiter(*_):
+        """
+        Wird man in die AnimationsGUI weitergefuehrt die man ausgewaehlt hat
+        :param _: metadata des button Commands
+        """
+        radioCol = cmds.radioCollection(DirectionControl, query=True, sl=True)
+        getSelectRadioVal = cmds.radioButton(radioCol, query=True, label=True)
+        if getSelectRadioVal == "Manuell":
+            AnimationUI(x,y)
+        else:
+            #Eventuell Parameter veraendern
+            AlgorithmhUi(x,y)
+
+        # Schliesst die Init GUI
+        cmds.deleteUI(winID)
+
+    cmds.separator(style='none', width=50)
+    cmds.button(label='Weiter',command= weiter)
+    cmds.separator(style='none', width=50)
+    # Zurueck zum Hauptlayout
+    cmds.setParent('..')
+
+    cmds.showWindow(winID)
+
+#Eventuell Parameter veraendern
+def AlgorithmhUi(x,y):
+    """
+    Algorithmus Windows zum erstellen der Animation
+    :param x: Die Reihe im Regal
+    :param y: Die Spalte im Regal
+    """
+    winID = "AlgorithmUI"
+    if cmds.window(winID, exists=True):
+        cmds.deleteUI(winID)
+    # Create the window
+    algorithmWindow = cmds.window("AlgorithmUI", title="Animation erzeugen", h=375, w=400, sizeable=False)
+    # TODO: Inhalt fuellen
+
+
+    # Layout erstellen
+    mainLayout = cmds.columnLayout(w=400, h=375)
+
+    cmds.showWindow(winID)
+
+
 def AnimationUI(x,y):
     """
     Die GUI fuer die Animation des Roboterarms
@@ -331,15 +425,16 @@ def AnimationUI(x,y):
     if cmds.window(winID, exists=True):
         cmds.deleteUI(winID)
 
+    # TODO: Fenster wird falsch skaliert trotz richtiger Daten
     # Erzeugt ein leeres Fenster
-    animationWindow = cmds.window("Animation", title = "Animation erzeugen", h = 375, w = 400, sizeable = False)
+    animationWindow = cmds.window("Animation", title="Animation erzeugen", h=375, w=400, sizeable=False)
 
     # Layout erstellen
     mainLayout = cmds.columnLayout(w = 400, h = 375)
     cmds.separator(style='none', height=25)
 
     # Rows fuer die einzelnen Motoren
-    row1mot = cmds.rowColumnLayout( numberOfColumns=7, columnWidth=[ (1,25),(2,100),(3,10),(4,50),(5,10),(6,25),(7,180) ] )
+    row1mot = cmds.rowColumnLayout( numberOfColumns=7, columnWidth=[(1,25),(2,100),(3,10),(4,50),(5,10),(6,25),(7,180)])
 
     cmds.separator(style='none', width=50, height=15)
     cmds.text(label="Motor 1")
@@ -450,7 +545,9 @@ def AnimationUI(x,y):
 
     cmds.separator(style='none', height=25)
     # Zeigt das Fentser an
+
     cmds.showWindow(winID)
+
 
 def SpeedUI(text):
     """
