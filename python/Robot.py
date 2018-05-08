@@ -8,6 +8,7 @@ Created on 05.12.2017
 """
 import maya.cmds as cmds
 import os
+import time
 
 # Die Winkelpositionen des Roboters fuer die Anfangsposition, um das Paket zu nehmen
 init_pos = [
@@ -236,16 +237,85 @@ def printAnimation():
 
 # GUIs
 
-def InitUI():
+def AnimationmodelUI():
     """
     Erstellung der GUI fuer die Auswahl der Startposition des Roboterarms auf ein Paket im Regal
     """
-    winID = "InitPos"
+    winID = "Animationsmodel"
     if cmds.window(winID, exists=True):
         cmds.deleteUI(winID)
 
     # Create the window
-    cmds.window(winID)
+    cmds.window("Animationsmodel", title="Auswahl des Animationmodels", h=150, w=400, sizeable=False)
+
+    # Layout erstellen
+    mainLayout = cmds.columnLayout(w=400, h=150)
+
+    # # Platzhalter + Strich
+    cmds.separator(style='none', width=50, height=15)
+
+    # Laying out the rowColumnLayout
+    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
+
+    cmds.separator(style='none', width=50)
+    cmds.text("Waehlen sie die Methode aus welcher die Animation herzustellen ist")
+    cmds.separator(style='none', width=50)
+    # Zurueck zum Hauptlayout
+    cmds.setParent('..')
+
+    cmds.separator(style='none', width=50, height=15)
+
+    # Laying out secound rowColumnLayout
+    table2 = cmds.rowColumnLayout(numberOfColumns=5, columnWidth=[(1, 80), (2, 100), (3, 40), (4, 100), (5, 80)])
+
+    cmds.separator(style='none', width=80)
+    DirectionControl = cmds.radioCollection()
+    Direction0 = cmds.radioButton(label='Manuell')
+    cmds.separator(style='none', width=40)
+    Direction1 = cmds.radioButton(label='Algorithmisch')
+    cmds.separator(style='none', width=80)
+    # Zurueck zum Hauptlayout
+    cmds.setParent('..')
+
+    cmds.separator(style='none', width=50, height=20)
+    DirectionControl = cmds.radioCollection(DirectionControl, edit=True, select=Direction1)
+
+    # Laying out the rowColumnLayout
+    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
+
+    def weiter(*_):
+        """
+        Wird man in die AnimationsGUI weitergefuehrt die man ausgewaehlt hat
+        :param _: metadata des button Commands
+        """
+        radioCol = cmds.radioCollection(DirectionControl, query=True, sl=True)
+        getSelectRadioVal = cmds.radioButton(radioCol, query=True, label=True)
+        positionUI(getSelectRadioVal)
+
+        # Schliesst die Init GUI
+        cmds.deleteUI(winID)
+
+    cmds.separator(style='none', width=50)
+    cmds.button(label='Weiter', command=weiter)
+    cmds.separator(style='none', width=50)
+    # Zurueck zum Hauptlayout
+    cmds.setParent('..')
+
+    cmds.showWindow(winID)
+
+
+def positionUI(selectedRadioVal):
+    """
+    Fenster dass zwischen Haendischer oder durch einen Algorightmus die Animation erstellt werden soll
+    :param x: Die Reihe im Regal
+    :param y: Die Spalte im Regal
+    """
+    winID = "positionUI"
+    if cmds.window(winID, exists=True):
+        cmds.deleteUI(winID)
+
+    # Fenster erstellen
+    cmds.window("positionUI", title="Auswahl des Regals", h=150, w=223, sizeable=False)
 
     # Master Layout
     masterLayout = cmds.columnLayout()
@@ -292,7 +362,7 @@ def InitUI():
         """
         r.setIniPos(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
 
-    cmds.button(label='Preview',command=setPos)
+    cmds.button(label='Preview', command=setPos)
     cmds.separator(style='none', width=32)
 
     def weiter(*_):
@@ -304,11 +374,14 @@ def InitUI():
         r.attachPackage(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         # Setz den ersten Keyframe
         r.setKeyframe(0)
-        AnimationmodelUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
+        if selectedRadioVal == "Manuell":
+            AnimationUI(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
+        else:
+            AlgorithmhUi(cmds.intField(x_txt, query=True, value=True), cmds.intField(y_txt, query=True, value=True))
         # Schliesst die Init GUI
         cmds.deleteUI(winID)
 
-    cmds.button(label='Weiter',command=weiter)
+    cmds.button(label='Weiter', command=weiter)
     cmds.separator(style='none', width=32)
 
     # Wieder zurueck zum masterLayout
@@ -317,79 +390,6 @@ def InitUI():
     cmds.separator(style='none', height=16)
 
     # show window
-    cmds.showWindow(winID)
-
-
-def AnimationmodelUI(x,y):
-    """
-    Fenster dass zwischen Haendischer oder durch einen Algorightmus die Animation erstellt werden soll
-    :param x: Die Reihe im Regal
-    :param y: Die Spalte im Regal
-    """
-    winID = "Animationsmodel"
-    if cmds.window(winID, exists=True):
-        cmds.deleteUI(winID)
-
-    # Fenster erstellen
-    animationmodelWindow = cmds.window("Animationsmodel", title = "Auswahl des Animationmodels", h = 150, w = 400, sizeable = False)
-
-    # Layout erstellen
-    mainLayout = cmds.columnLayout(w=400, h=150)
-
-    # # Platzhalter + Strich
-    cmds.separator(style='none', width=50, height=15)
-
-    # Laying out the rowColumnLayout
-    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
-
-    cmds.separator(style='none', width=50)
-    cmds.text("Waehlen sie die Methode aus welcher die Animation herzustellen ist")
-    cmds.separator(style='none', width=50)
-    #Zurueck zum Hauptlayout
-    cmds.setParent('..')
-
-    cmds.separator(style='none', width=50, height=15)
-
-    # Laying out secound rowColumnLayout
-    table2 = cmds.rowColumnLayout(numberOfColumns=5, columnWidth=[(1,80),(2,100),(3,40),(4,100),(5,80)])
-
-    cmds.separator(style='none', width=80)
-    DirectionControl = cmds.radioCollection()
-    Direction0 = cmds.radioButton(label='Manuell')
-    cmds.separator(style='none', width=40)
-    Direction1 = cmds.radioButton(label='Algorithmisch')
-    cmds.separator(style='none', width=80)
-    # Zurueck zum Hauptlayout
-    cmds.setParent('..')
-
-    cmds.separator(style='none', width=50, height=20)
-    DirectionControl = cmds.radioCollection(DirectionControl, edit=True, select=Direction1)
-
-    # Laying out the rowColumnLayout
-    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
-
-    def weiter(*_):
-        """
-        Wird man in die AnimationsGUI weitergefuehrt die man ausgewaehlt hat
-        :param _: metadata des button Commands
-        """
-        radioCol = cmds.radioCollection(DirectionControl, query=True, sl=True)
-        getSelectRadioVal = cmds.radioButton(radioCol, query=True, label=True)
-        if getSelectRadioVal == "Manuell":
-            AnimationUI(x,y)
-        else:
-            #Eventuell Parameter veraendern
-            AlgorithmhUi(x,y)
-
-        # Schliesst die Init GUI
-        cmds.deleteUI(winID)
-
-    cmds.separator(style='none', width=50)
-    cmds.button(label='Weiter',command= weiter)
-    cmds.separator(style='none', width=50)
-    # Zurueck zum Hauptlayout
-    cmds.setParent('..')
-
     cmds.showWindow(winID)
 
 #Eventuell Parameter veraendern
@@ -403,12 +403,44 @@ def AlgorithmhUi(x,y):
     if cmds.window(winID, exists=True):
         cmds.deleteUI(winID)
     # Create the window
-    algorithmWindow = cmds.window("AlgorithmUI", title="Animation erzeugen", h=375, w=400, sizeable=False)
-    # TODO: Inhalt fuellen
+    algorithmWindow = cmds.window("AlgorithmUI", title="Animation erzeugen", h=200, w=400, sizeable=False)
 
 
     # Layout erstellen
-    mainLayout = cmds.columnLayout(w=400, h=375)
+    mainLayout = cmds.columnLayout(w=400, h=200)
+    # TODO: Inhalt fuellen
+    cmds.separator(style='none', height=25)
+
+    # Laying out the rowColumnLayout
+    table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
+
+    cmds.separator(style='none', width=10)
+    maxvalue = 100
+    progressControl = cmds.progressBar(maxValue=maxvalue, width=380)
+    cmds.separator(style='none', width=10)
+    cmds.setParent('..')
+
+    # To see Progress in % on ProgressBar
+    cmds.progressBar(progressControl, edit=True, step=1)
+    cmds.separator(style='none', width=50, height=15)
+
+    # TODO: Fill code, change with actual Code
+    table3 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 100), (2, 200), (3, 100)])
+    cmds.separator(style='none', width=10)
+    def test(*_):
+        for i in range(0, maxvalue):
+            if(i < 24):
+                time.sleep(.1)
+                cmds.progressBar(progressControl, edit=True, step=1)
+            elif(i < 66):
+                time.sleep(.15)
+                cmds.progressBar(progressControl, edit=True, step=1)
+            else:
+                time.sleep(.09)
+                cmds.progressBar(progressControl, edit=True, step=1)
+    cmds.button(label='Make Progress!', command=test, width=200)
+    cmds.separator(style='none', width=10)
+    cmds.setParent('..')
 
     cmds.showWindow(winID)
 
@@ -425,7 +457,6 @@ def AnimationUI(x,y):
     if cmds.window(winID, exists=True):
         cmds.deleteUI(winID)
 
-    # TODO: Fenster wird falsch skaliert trotz richtiger Daten
     # Erzeugt ein leeres Fenster
     animationWindow = cmds.window("Animation", title="Animation erzeugen", h=375, w=400, sizeable=False)
 
@@ -588,7 +619,7 @@ def SpeedUI(text):
 # Der Anfangs Roboterarm mitdem die parametrischen Daten erfasst werden
 r = Robot("Robot")
 # Oeffnen der Startpositions GUI
-InitUI()
+AnimationmodelUI()
 
 # Testing
 
