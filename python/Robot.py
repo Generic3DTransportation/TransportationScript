@@ -28,6 +28,8 @@ init_pos = [
 ]
 # Maximale Geschwindigkeit der Achsen (in Grad pro Sekunde)
 max_speed = (105, 107, 114, 179, 172)
+# Fuellt die Animation ueber das A4 Blatt aus
+fill_animation = (25, 50/3/2, -50/3/2, -25)
 
 class Robot():
     """
@@ -184,7 +186,7 @@ def newRobot(name):
     cmds.duplicate('Robot', n=name)
     return Robot(name)
 
-def printAnimation():
+def printManualAnimation():
     """
     Exportierung der Animierung in ein externes File mit 4 Zeitpunkten graphisch gargestellt.
     """
@@ -204,6 +206,10 @@ def printAnimation():
     cmds.currentTime(str(r.totalpasttime) + 'sec', edit=True)
     r4 = newRobot("r4")
 
+    # Speichern der Dauer der Animation
+    with open("duration.txt","w+") as f:
+        f.write(str(r.totalpasttime))
+
     # Kopieren von Regal, Tisch und Platte zum Export in das File
     cmds.duplicate('Regal', n='Regal_Frame')
     cmds.duplicate('Tisch', n='Tisch_Frame')
@@ -213,14 +219,14 @@ def printAnimation():
     # und Verschiebung der Roboterarme auf die zeitlich proportionalen Positionen
     cmds.select('Regal_Frame', r=True)
     cmds.select('r1', add=True)
-    cmds.move(25, moveX=True, relative=True)
+    cmds.move(fill_animation[0], moveX=True, relative=True)
     cmds.select('Tisch_Frame', r=True)
     cmds.select('r4', add=True)
-    cmds.move(-25, moveX=True, relative=True)
+    cmds.move(fill_animation[3], moveX=True, relative=True)
     cmds.select('r2', r=True)
-    cmds.move(50 / 3 / 2, moveX=True, relative=True)
+    cmds.move(fill_animation[1], moveX=True, relative=True)
     cmds.select('r3', r=True)
-    cmds.move(-50 / 3 / 2, moveX=True, relative=True)
+    cmds.move(fill_animation[2], moveX=True, relative=True)
     cmds.select('Platte_Frame', r=True)
     cmds.select('Tisch_Frame', add=True)
     cmds.select('Regal_Frame', add=True)
@@ -230,10 +236,24 @@ def printAnimation():
     cmds.select('r4', add=True)
 
     # Export der Selektion in PrintRobot.mb
-    cmds.file(os.getcwd()+'/PrintRobot.mb', type='mayaBinary', exportSelected=True)
-
+    cmds.file(os.getcwd()+'/PrintRobot_manual.mb', type='mayaBinary', exportSelected=True)
     # Selektion wird nach Export geloescht
     cmds.delete()
+
+def printAlgorithmAnimation(step):
+    # Step 1 Animation
+    if step == 1:
+        rest1 = 0
+        if cmds.getAttr('achse1.rotateY') < 0:
+            rest1 = -(-180 - cmds.getAttr('achse1.rotateY'))
+            r.setAchse1(-180)
+        else:
+            rest1 = 180 - cmds.getAttr('achse1.rotateY')
+            r.setAchse1(180)
+        rest1_sek = float(rest1)/max_speed[0]
+        cmds.setKeyframe(r.achsname1, at='rotateY', t=str(rest1_sek) + 'sec')
+        cmds.delete('ikHandle')
+
 
 # GUIs
 
@@ -415,7 +435,7 @@ def AlgorithmhUi(x,y):
     table1 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 10), (2, 380), (3, 10)])
 
     cmds.separator(style='none', width=10)
-    maxvalue = 100
+    maxvalue = 4
     progressControl = cmds.progressBar(maxValue=maxvalue, width=380)
     cmds.separator(style='none', width=10)
     cmds.setParent('..')
@@ -429,15 +449,18 @@ def AlgorithmhUi(x,y):
     cmds.separator(style='none', width=10)
     def test(*_):
         for i in range(0, maxvalue):
-            if(i < 24):
-                time.sleep(.1)
+            if(i == 1):
                 cmds.progressBar(progressControl, edit=True, step=1)
-            elif(i < 66):
-                time.sleep(.15)
+                printAlgorithmAnimation(1)
+            elif(i == 2):
                 cmds.progressBar(progressControl, edit=True, step=1)
+                printAlgorithmAnimation(2)
+            elif (i == 3):
+                cmds.progressBar(progressControl, edit=True, step=1)
+                printAlgorithmAnimation(3)
             else:
-                time.sleep(.09)
                 cmds.progressBar(progressControl, edit=True, step=1)
+                printAlgorithmAnimation(4)
     cmds.button(label='Make Progress!', command=test, width=200)
     cmds.separator(style='none', width=10)
     cmds.setParent('..')
@@ -568,7 +591,7 @@ def AnimationUI(x,y):
         Exportiert die Animation
         :param _: metadata des Button Commands
         """
-        printAnimation()
+        printManualAnimation()
     cmds.button(label='Drucken', command=export)
     cmds.separator(style='none', width=50)
 
