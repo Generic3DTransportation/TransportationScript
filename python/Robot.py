@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: ascii -*-
 """
 Created on 05.12.2017
 
@@ -30,7 +32,6 @@ init_pos = [
 max_speed = (105, 107, 114, 179, 172)
 # Fuellt die Animation ueber das A4 Blatt aus
 fill_animation = (25, 50/3/2, -50/3/2, -25)
-
 class Robot():
     """
     Das Roboterobjekt, welches fuer die direkte Ansteuerung
@@ -58,6 +59,9 @@ class Robot():
 
         # Die Laenge der Animation
         self.totalpasttime = 0
+
+        # Paket welches der Roboter transportiert
+        self.package = 0,0
 
     def updateAll(self):
         """
@@ -125,6 +129,7 @@ class Robot():
         :param x: Die Reihe im Regal
         :param y: Die Spalte im Regal
         """
+        self.package = x,y
         # parent verschiebt ein Objekt in eine Gruppe.
         cmds.parent('p'+str(x)+str(y), self.achsname5)
 
@@ -241,8 +246,37 @@ def printManualAnimation():
     cmds.delete()
 
 def printAlgorithmAnimation(step):
-    # Step 1 Animation
+    # Step 1 Animation "Aus dem Regal bewegen"
     if step == 1:
+        before_rotate = r.getMotorRotation(0)
+        # Paket wird aus dem Regal bewegt
+        for i in range(0,4):
+            if r.package[0] == 1:
+                if r.package[1] == 2:
+                    cmds.move(-.3, 0, 0, 'ikHandle', relative=True)
+                else:
+                    cmds.move(-.5, 1, 0, 'ikHandle', relative=True)
+            else:
+                if r.package[1] == 2:
+                    cmds.move(-.3, .25, 0, 'ikHandle', relative=True)
+                else:
+                    cmds.move(-.5, .4, 0, 'ikHandle', relative=True)
+        after_rotate = r.getMotorRotation(0)
+        # Schnellst moegliche Zeit fuer diese Bewegung wird berechnet
+        min_time = max(abs(before_rotate[1] - after_rotate[1]) / max_speed[1],
+                       abs(before_rotate[2] - after_rotate[2]) / max_speed[2],
+                       abs(before_rotate[3] - after_rotate[3]) / max_speed[3],
+                       abs(before_rotate[4] - after_rotate[4]) / max_speed[4])
+        # Mit schnellst moeglicher Zeit wird der Roboterarm bewegt
+        cmds.setKeyframe(r.achsname1, at='rotateY', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname2, at='rotateZ', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname3, at='rotateZ', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname4, at='rotateX', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname5, at='rotateZ', t=str(min_time) + 'sec')
+        r.totalpasttime += min_time
+        cmds.currentTime(str(r.totalpasttime) + 'sec', edit=True)
+    # Step 2 Animation "Zur Ausgabe rotieren"
+    if step == 2:
         rest1 = 0
         if cmds.getAttr('achse1.rotateY') < 0:
             rest1 = -(-180 - cmds.getAttr('achse1.rotateY'))
@@ -252,8 +286,34 @@ def printAlgorithmAnimation(step):
             r.setAchse1(180)
         rest1_sek = float(rest1)/max_speed[0]
         cmds.setKeyframe(r.achsname1, at='rotateY', t=str(rest1_sek) + 'sec')
+        cmds.setKeyframe(r.achsname2, at='rotateZ', t=str(r.totalpasttime+.3) + 'sec')
+        cmds.setKeyframe(r.achsname3, at='rotateZ', t=str(r.totalpasttime+.3) + 'sec')
+        cmds.setKeyframe(r.achsname4, at='rotateX', t=str(r.totalpasttime+.3) + 'sec')
+        cmds.setKeyframe(r.achsname5, at='rotateZ', t=str(r.totalpasttime+.3) + 'sec')
         cmds.delete('ikHandle')
-
+        cmds.currentTime(str(r.totalpasttime + rest1_sek) + 'sec', edit=True)
+    # Step 3 Animation "Fuer die Ausgabe rotieren/positionieren"
+    if step == 3:
+        before_rotate = [cmds.getAttr('achse2.rotateZ'),cmds.getAttr('achse3.rotateZ'),cmds.getAttr('achse4.rotateX'),cmds.getAttr('achse5.rotateZ')]
+        after_rotate = [-52.2985745581, 34.7935752632, 0.0, -74.1268957397]
+        r.setAchse2(after_rotate[0])
+        r.setAchse3(after_rotate[1])
+        r.setAchse4(after_rotate[2])
+        r.setAchse5(after_rotate[3])
+        min_time = max(abs(before_rotate[0] - after_rotate[0]) / max_speed[1],
+                       abs(before_rotate[1] - after_rotate[1]) / max_speed[2],
+                       abs(before_rotate[2] - after_rotate[2]) / max_speed[3],
+                       abs(before_rotate[3] - after_rotate[3]) / max_speed[4])
+        min_time += r.totalpasttime
+        # Mit schnellst moeglicher Zeit wird der Roboterarm bewegt
+        cmds.setKeyframe(r.achsname2, at='rotateZ', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname3, at='rotateZ', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname4, at='rotateX', t=str(min_time) + 'sec')
+        cmds.setKeyframe(r.achsname5, at='rotateZ', t=str(min_time) + 'sec')
+    # Step 4 Export Animation for printing
+    if step == 4:
+        # TODO: PRINT IT OUT!!!
+        pass
 
 # GUIs
 
@@ -653,8 +713,8 @@ AnimationmodelUI()
 # r.a4=w[3]
 # r.a5=-120
 # r.updateAll()
-# print("1: "+str(cmds.getAttr('achse1.rotateY')))
-# print("2: "+str(cmds.getAttr('achse2.rotateZ')))
-# print("3: "+str(cmds.getAttr('achse3.rotateZ')))
-# print("4: "+str(cmds.getAttr('achse4.rotateX')))
-# print("5: "+str(cmds.getAttr('achse5.rotateZ')))
+print("1: "+str(cmds.getAttr('achse1.rotateY')))
+print("2: "+str(cmds.getAttr('achse2.rotateZ')))
+print("3: "+str(cmds.getAttr('achse3.rotateZ')))
+print("4: "+str(cmds.getAttr('achse4.rotateX')))
+print("5: "+str(cmds.getAttr('achse5.rotateZ')))
