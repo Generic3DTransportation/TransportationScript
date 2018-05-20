@@ -31,7 +31,7 @@ init_pos = [
 # Maximale Geschwindigkeit der Achsen (in Grad pro Sekunde)
 max_speed = (105, 107, 114, 179, 172)
 # Fuellt die Animation ueber das A4 Blatt aus
-fill_animation = (25, 50/3/2, -50/3/2, -25)
+fill_animation = (27.5, 55/3/2, -55/3/2, -27.5)
 class Robot():
     """
     Das Roboterobjekt, welches fuer die direkte Ansteuerung
@@ -198,8 +198,6 @@ def printManualAnimation():
     # Create File
     # cmds.file(f=True, new=True)
     timeseg = float(r.totalpasttime)/3
-    print(r.totalpasttime)
-    print(timeseg)
 
     # Erstellung von 4 Roboterarmen an den 4 Zeitpunkten der Animation
     cmds.currentTime('0sec', edit=True)
@@ -212,7 +210,7 @@ def printManualAnimation():
     r4 = newRobot("r4")
 
     # Speichern der Dauer der Animation
-    with open("duration.txt","w+") as f:
+    with open("time_manual.conf","w+") as f:
         f.write(str(r.totalpasttime))
 
     # Kopieren von Regal, Tisch und Platte zum Export in das File
@@ -239,11 +237,13 @@ def printManualAnimation():
     cmds.select('r2', add=True)
     cmds.select('r3', add=True)
     cmds.select('r4', add=True)
+    cmds.move(-5, moveZ=True, relative=True)
 
     # Export der Selektion in PrintRobot.mb
     cmds.file(os.getcwd()+'/PrintRobot_manual.mb', type='mayaBinary', exportSelected=True)
     # Selektion wird nach Export geloescht
     cmds.delete()
+    SpeedUI("Export abgeschlossen!")
 
 def printAlgorithmAnimation(step):
     # Step 1 Animation "Aus dem Regal bewegen"
@@ -292,6 +292,9 @@ def printAlgorithmAnimation(step):
         cmds.setKeyframe(r.achsname5, at='rotateZ', t=str(r.totalpasttime+.3) + 'sec')
         cmds.delete('ikHandle')
         cmds.currentTime(str(r.totalpasttime + rest1_sek) + 'sec', edit=True)
+        # Speicherung wie lange die gesamte Animation dauert
+        with open("time_algorithm.conf","w+") as f:
+            f.write(str(r.totalpasttime + rest1_sek))
     # Step 3 Animation "Fuer die Ausgabe rotieren/positionieren"
     if step == 3:
         before_rotate = [cmds.getAttr('achse2.rotateZ'),cmds.getAttr('achse3.rotateZ'),cmds.getAttr('achse4.rotateX'),cmds.getAttr('achse5.rotateZ')]
@@ -312,8 +315,79 @@ def printAlgorithmAnimation(step):
         cmds.setKeyframe(r.achsname5, at='rotateZ', t=str(min_time) + 'sec')
     # Step 4 Export Animation for printing
     if step == 4:
-        # TODO: PRINT IT OUT!!!
-        pass
+        timeproportion = 1
+        isCombined = False
+        with open("time_algorithm.conf", "r") as f:
+            algorithm_animation_time = float(f.read())
+        try:
+            with open("time_manual.conf", "r") as f:
+                manual_animation_time = float(f.read())
+            timeproportion = algorithm_animation_time / manual_animation_time
+            isCombined = True
+        except:
+            SpeedUI("Kombinierung nicht m?glich!")
+
+        timeseg = float(algorithm_animation_time) / 3
+
+        # Erstellung von 4 Roboterarmen an den 4 Zeitpunkten der Animation
+        cmds.currentTime('0sec', edit=True)
+        r1 = newRobot("r1_alg")
+        cmds.currentTime(str(timeseg) + 'sec', edit=True)
+        r2 = newRobot("r2_alg")
+        cmds.currentTime(str(timeseg * 2) + 'sec', edit=True)
+        r3 = newRobot("r3_alg")
+        cmds.currentTime(str(algorithm_animation_time) + 'sec', edit=True)
+        r4 = newRobot("r4_alg")
+
+        # Kopieren von Regal, Tisch und Platte zum Export in das File
+        cmds.duplicate('Regal', n='Regal_alg')
+        cmds.duplicate('Tisch', n='Tisch_alg')
+        cmds.duplicate('Platte', n='Platte_alg')
+
+        # Selektion aller Objekte welche exportiert werden sollen
+        # und Verschiebung der Roboterarme auf die zeitlich proportionalen Positionen
+        cmds.select('Regal_alg', r=True)
+        cmds.select('r1_alg', add=True)
+        cmds.move(fill_animation[0]*timeproportion, moveX=True, relative=True)
+        cmds.select('Tisch_alg', r=True)
+        cmds.select('r4_alg', add=True)
+        cmds.move(fill_animation[3]*timeproportion, moveX=True, relative=True)
+        cmds.select('r2_alg', r=True)
+        cmds.move(fill_animation[1]*timeproportion, moveX=True, relative=True)
+        cmds.select('r3_alg', r=True)
+        cmds.move(fill_animation[2]*timeproportion, moveX=True, relative=True)
+        cmds.select('Platte_alg', r=True)
+        cmds.select('Tisch_alg', add=True)
+        cmds.select('Regal_alg', add=True)
+        cmds.select('r1_alg', add=True)
+        cmds.select('r2_alg', add=True)
+        cmds.select('r3_alg', add=True)
+        cmds.select('r4_alg', add=True)
+        # Kombiniert den Manuellen und den algorithmischen Weg
+        if isCombined:
+            cmds.move(5, moveZ=True, relative=True)
+            cmds.file(os.getcwd()+'/PrintRobot_manual.mb', i=True, f=True)
+            cmds.select('Tisch_Frame', r=True)
+            cmds.select('Regal_Frame', add=True)
+            cmds.select('r1', add=True)
+            cmds.select('r2', add=True)
+            cmds.select('r3', add=True)
+            cmds.select('r4', add=True)
+            cmds.move(-5, moveZ=True, relative=True)
+
+            cmds.select('Platte_Frame', add=True)
+            cmds.select('Tisch_alg', add=True)
+            cmds.select('Regal_alg', add=True)
+            cmds.select('r1_alg', add=True)
+            cmds.select('r2_alg', add=True)
+            cmds.select('r3_alg', add=True)
+            cmds.select('r4_alg', add=True)
+        # Export der Selektion in PrintRobot.mb
+        cmds.file(os.getcwd() + '/PrintRobot_algorithm.mb', type='mayaBinary', exportSelected=True)
+        # Selektion wird nach Export geloescht
+        cmds.delete()
+        SpeedUI("Export abgeschlossen!")
+
 
 # GUIs
 
@@ -508,7 +582,7 @@ def AlgorithmhUi(x,y):
     table3 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 100), (2, 200), (3, 100)])
     cmds.separator(style='none', width=10)
     def test(*_):
-        for i in range(0, maxvalue):
+        for i in range(1, maxvalue+1):
             if(i == 1):
                 cmds.progressBar(progressControl, edit=True, step=1)
                 printAlgorithmAnimation(1)
@@ -518,10 +592,10 @@ def AlgorithmhUi(x,y):
             elif (i == 3):
                 cmds.progressBar(progressControl, edit=True, step=1)
                 printAlgorithmAnimation(3)
-            else:
+            elif (i == 4):
                 cmds.progressBar(progressControl, edit=True, step=1)
                 printAlgorithmAnimation(4)
-    cmds.button(label='Make Progress!', command=test, width=200)
+    cmds.button(label='Starte Algorithmus', command=test, width=200)
     cmds.separator(style='none', width=10)
     cmds.setParent('..')
 
@@ -713,8 +787,8 @@ AnimationmodelUI()
 # r.a4=w[3]
 # r.a5=-120
 # r.updateAll()
-print("1: "+str(cmds.getAttr('achse1.rotateY')))
-print("2: "+str(cmds.getAttr('achse2.rotateZ')))
-print("3: "+str(cmds.getAttr('achse3.rotateZ')))
-print("4: "+str(cmds.getAttr('achse4.rotateX')))
-print("5: "+str(cmds.getAttr('achse5.rotateZ')))
+# print("1: "+str(cmds.getAttr('achse1.rotateY')))
+# print("2: "+str(cmds.getAttr('achse2.rotateZ')))
+# print("3: "+str(cmds.getAttr('achse3.rotateZ')))
+# print("4: "+str(cmds.getAttr('achse4.rotateX')))
+# print("5: "+str(cmds.getAttr('achse5.rotateZ')))
