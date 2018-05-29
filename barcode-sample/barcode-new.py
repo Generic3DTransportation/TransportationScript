@@ -32,7 +32,7 @@ def display(im, decodedObjects):
 # Main
 if __name__ == '__main__':
     # Read image
-    im = cv2.imread('test1.jpg')
+    im = cv2.imread("test2.png")
     decodedObjects = decode_barcode(im)
     im = display(im, decodedObjects)
     cv2.imshow("Results", im)
