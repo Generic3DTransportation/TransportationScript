@@ -28,3 +28,10 @@ Beim File das Script angeben und dann sollte das offene Maya File Änderungen de
 - Dannach wird der Roboterarm richtig plaziert und ein neues GUI-Fenster öffnet sich in dem alle Motoren angezeigt werden (mit den eingestellten Graden). Weiters wird darunter die Zeit zwischen diesen Animationspunkten(Keyframes) wählbar gemacht. Es wäre dabei auch noch ganz gut zu schnelle Aniamtionen (wenn man einen zu kurzen Abstand zwischen den Animationen setzt) ein Fehler beim setzen ausgegeben werden. GUI Bsp.:
 ![Animation_Mockup](Animation_Mockup.png)
 - Aus dieser Animation werden nun 4 Zeitpunkte heruasgenommen und nebeneinander zeitlich proportional dargestellt. Diese werden dann 3d gedruckt
+
+Folgende Package müssen für den Barcode Scan hinzugefügt werden
+```
+sudo apt-get install libzbar-dev libzbar0
+pip install pyzbar
+pip install opencv-python
+```
