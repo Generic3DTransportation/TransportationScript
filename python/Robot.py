@@ -8,9 +8,22 @@ Created on 05.12.2017
 
 @description: Pythonscript fuer Roboteransteuerung
 """
-import maya.cmds as cmds
 import os
-import time
+
+import maya.cmds as cmds
+
+"""
+import sys
+import pprint
+pprint.pprint(sys.path)
+"""
+import sys
+sys.path.insert(0,'../python')
+sys.path.insert(0,'C:\Users\David\AppData\Local\Programs\Python\Python36\Lib\site-packages\cv2')
+import cv2
+#from setuptools.command import easy_install
+#easy_install.main(["cv2"])
+from barcodeScanner import *
 
 # Die Winkelpositionen des Roboters fuer die Anfangsposition, um das Paket zu nehmen
 init_pos = [
@@ -505,7 +518,25 @@ def positionUI(selectedRadioVal):
     cmds.separator(style='none', height=16)
 
     # Zweites TableLayout
-    table2 = cmds.rowColumnLayout(numberOfColumns=5, columnWidth=[(1, 32), (2, 64), (3, 32), (4, 64), (5, 32)])
+    table3 = cmds.rowColumnLayout(numberOfColumns=3, columnWidth=[(1, 35), (2, 160), (3, 35)])
+
+    cmds.separator(style='none', width=35)
+
+    def importImage(*_):
+        #Ist der Pfad des Files der ausgew?hlt wird
+        filename = cmds.fileDialog2(fileMode=1, caption="Import Image")
+        print(filename[0])
+
+    cmds.button(label='Barcode Einscannen', command=importImage)
+    cmds.separator(style='none', width=35)
+
+    cmds.setParent('..')
+
+    cmds.separator(style='none', height=16)
+    cmds.separator(style='in', width=224)
+    cmds.separator(style='none', height=16)
+    # Drittes TableLayout
+    table3 = cmds.rowColumnLayout(numberOfColumns=5, columnWidth=[(1, 32), (2, 64), (3, 32), (4, 64), (5, 32)])
 
     cmds.separator(style='none', width=32)
 
